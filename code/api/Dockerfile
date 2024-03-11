@@ -7,14 +7,20 @@ WORKDIR /usr/src/app
 # Clone the repository
 RUN git clone https://github.com/issahar987/crate_fork.git crate
 
-# Change directory to the cloned repository
-WORKDIR /usr/src/app/crate/code/web
+# Switch to code directory
+WORKDIR /usr/src/app/crate/code
+
+# Copy database configuration
+COPY my_database.json api/src/config/database.json
+
+# Switch to api directory
+WORKDIR /usr/src/app/crate/code/api
 
 # Install npm packages
 RUN npm install
 
-# Install additional dependency
-RUN npm install @babel/cli
+# Install pg
+RUN npm install pg
 
 # Update Browserslist DB
 RUN npx browserslist@latest --update-db
@@ -22,10 +28,11 @@ RUN npx browserslist@latest --update-db
 # Set NODE_OPTIONS environment variable
 ENV NODE_OPTIONS="--openssl-legacy-provider"
 
-# Expose port 3000 for the web application
-EXPOSE 3000
+# Setup database (migrations and seed)
+RUN npm run setup
 
-# Command to run the web application
-# CMD ["npm", "start"]
-# Command to run the web application in production mode
+# Expose port 8000 for the API
+EXPOSE 8000
+
+# Command to run the API in production mode
 CMD ["npm", "run", "start:prod"]
